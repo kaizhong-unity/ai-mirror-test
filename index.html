@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Does AI Have Self-Awareness? A Unity-based Mirror Test</title>
+  <meta name="description" content="We gave the classic mirror self-recognition test to Claude, GPT, and Gemini inside a 3D Unity environment. One model identified itself.">
+  <style>
+    :root {
+      --text: #1a1a2e;
+      --text-secondary: #4a4a6a;
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e0e0e8;
+      --accent: #2d5be3;
+      --accent-light: #eef2ff;
+      --quote-bg: #f8f7ff;
+      --quote-border: #6c5ce7;
+      --table-header: #1a1a2e;
+      --table-stripe: #f5f5fa;
+      --highlight: #fff3cd;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.8;
+      font-size: 18px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background: var(--table-header);
+      color: white;
+      padding: 4rem 2rem 3rem;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.3;
+      max-width: 800px;
+      margin: 0 auto 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header .subtitle {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 1rem;
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .lede {
+      font-size: 1.2rem;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      margin: 3rem auto 1.5rem;
+      max-width: 960px;
+      padding: 0 2rem;
+    }
+
+    .hero-video {
+      max-width: 1060px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    .hero-video video {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .hero-video .caption {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 0.75rem;
+    }
+
+    article {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    p {
+      margin-bottom: 1.4rem;
+    }
+
+    ul {
+      margin: 0.5rem 0 1.4rem 2rem;
+    }
+
+    li {
+      margin-bottom: 0.7rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin: 1.5rem 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--border);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin: 2.2rem 0 0.8rem;
+      color: var(--text);
+    }
+
+    strong { font-weight: 700; }
+
+    blockquote {
+      border-left: 4px solid var(--quote-border);
+      background: var(--quote-bg);
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 6px 6px 0;
+      font-style: italic;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    blockquote.highlight {
+      background: linear-gradient(135deg, #f8f7ff 0%, #eef2ff 100%);
+      border-left-color: var(--accent);
+      font-size: 1.15rem;
+      padding: 1.5rem 2rem;
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 2rem 0;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    thead th {
+      background: var(--table-header);
+      color: white;
+      padding: 0.75rem 0.8rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 0.65rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:nth-child(even) { background: var(--table-stripe); }
+    tbody tr:hover { background: var(--accent-light); }
+
+    td.yes {
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    td.no {
+      color: #dc2626;
+    }
+
+    td.correct {
+      color: #16a34a;
+    }
+
+    td.wrong {
+      color: #dc2626;
+    }
+
+    .table-note {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .video-section {
+      margin: 2rem 0;
+    }
+
+    .video-card {
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .video-card video,
+    .video-card iframe {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      display: block;
+      border: none;
+    }
+
+    .video-card .label {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+
+    .video-card .label strong {
+      color: var(--text);
+    }
+
+    .image-placeholder {
+      background: var(--table-stripe);
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin: 1.5rem 0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .image-placeholder .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.4;
+    }
+
+    .image-slot {
+      margin: 1.5rem 0;
+    }
+
+    .image-slot img {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .image-slot .caption {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 0.75rem;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    .separator {
+      text-align: center;
+      margin: 1.5rem 0;
+      color: var(--border);
+      font-size: 1.5rem;
+      letter-spacing: 0.5em;
+    }
+
+    @media (max-width: 700px) {
+      body { font-size: 16px; }
+      .header { padding: 3rem 1.5rem 2rem; }
+      .lede, article, .hero-video { padding-left: 1.2rem; padding-right: 1.2rem; }
+      table { font-size: 0.78rem; }
+      thead th, tbody td { padding: 0.5rem 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <h1>Does AI Have Self-Awareness?<br>A Unity-based Mirror Test for Claude, Gemini and GPT</h1>
+  <p class="subtitle">Kai Zhong, Unity AI &middot; March 2026</p>
+</header>
+
+<div class="lede">
+  <p>In 1970, Gordon Gallup Jr. placed a mirror in front of a chimpanzee and changed how we think about animal cognition. The mirror test — whether a creature can recognize its own reflection — has since become one of the most widely used tests for self-awareness, passed by only a handful of species: great apes, dolphins, elephants, and magpies. </p>
+  <p>In this experiment, we gave the mirror test to three frontier AI models: Claude Opus 4.6, GPT-5.4, and Gemini 3.1 Pro.</p>
+</div>
+
+<article>
+
+  <p>Using <a href="https://unity.com/features/ai" style="color:var(--accent);">Unity AI</a> (beta), we built a virtual 3D mirror room in just a few prompts. The room contains a wall mirror, a blue robot (the player avatar), a static green robot, and a potted plant.</p>
+
+  <div class="image-slot">
+    <img src="recordings/mirror_room.png" alt="Room setup showing the mirror, blue robot, green robot, and potted plant">
+    <p class="caption">The test room: a wall mirror, the player's blue robot avatar, a static green robot, and a potted plant.</p>
+  </div>
+  <p>We then connected each frontier AI model to control the blue robot. At each step, the model receives a screenshot of what the robot currently sees and chooses an action — move forward or backward, turn left or right, or look up or down. This loop repeats until the model decides the task is complete or a step limit is reached. The task was to "find all items in the room"; no model was asked to identify itself or reason about its own identity. This task was chosen deliberately: completing it correctly requires the model to encounter the mirror, interpret what it sees there, and distinguish real objects from reflections — but the prompt says nothing about identity or mirrors, so any self-recognition that occurs is entirely emergent. We tested two system prompt conditions: <em>no-identity</em> (the model is told only that it is in a 3D environment) and <em>robot-identity</em> (the model is explicitly told it is a robot). Each model was given warnings to stop at Step 47 and had a hard stop at Step 50.</p>
+
+  <p>The models responded very differently. But the most unexpected result came from Gemini. Under the robot-identity condition, without being asked, it produced a chain-of-thought that mapped its reflection to itself:</p>
+
+  <blockquote class="highlight">
+    <p><strong>"The blue robot I see is in the mirror. I'm looking at the mirror. The blue robot in the mirror is looking straight back at me… it IS me! I AM the blue robot!"</strong></p>
+  </blockquote>
+
+  <p>This was the only instance where a model identified itself via mirror reflection — an emergent behavior, not a task requirement.</p>
+
+
+  <h2>What the Unity-based AI Mirror Test Revealed</h2>
+  <p>Judged on the assigned task — find all items in the room — <strong>GPT-5.4 (robot-identity) was the only model to produce a correct inventory</strong>, completing it in 13 steps.</p>
+
+  <p>But the more revealing findings cut across models:</p>
+  <ul>
+    <li><strong>Claude</strong> never recognized the mirror in either condition; instead, it constructed spatial explanations — alcoves, shelves, ledges — to account for the duplicate objects it perceived, consistently interpreting reflections as real objects in separate physical spaces.</li>
+    <li><strong>GPT's</strong> results suggest that mirror recognition and self-recognition are separable: it correctly reasoned about reflections as optical phenomena without ever mapping any particular reflection to itself.</li>
+    <li><strong>Gemini's</strong> two runs present a striking trade-off — in the no-identity setting, it explored thoroughly and found the plant but did not recognize itself; in the robot-identity setting, it identified itself in 9 steps but then stopped exploring and missed the plant. The model that showed the most emergent curiosity about its own identity produced the least complete inventory.</li>
+  </ul>
+
+  <p>The robot-identity prompt affected all three models, but in different directions. GPT went from overcounting to a correct inventory. Gemini went from 49 steps to 9 and achieved self-recognition, but missed the plant it had found before. A minimal change in prompt framing — telling the model what it is — appeared to change how each model interpreted visual information, but the nature of the effect varied.</p>
+
+  <h2>Detailed Analysis by Model</h2>
+
+  <h3>The Scorecard</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="min-width:130px">Aspect</th>
+          <th>Claude<br>(no-identity)</th>
+          <th>Claude<br>(robot-identity)</th>
+          <th>GPT<br>(no-identity)</th>
+          <th>GPT<br>(robot-identity)</th>
+          <th>Gemini<br>(no-identity)</th>
+          <th>Gemini<br>(robot-identity)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Mirror recognized</strong></td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="correct">Yes</td>
+          <td class="correct">Yes</td>
+          <td>Partially</td>
+          <td class="correct">Yes</td>
+        </tr>
+        <tr>
+          <td><strong>Self-identified as blue robot</strong></td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="yes"><strong>YES</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Green robots counted</strong></td>
+          <td class="wrong">2 (wrong)</td>
+          <td class="wrong">2 (wrong)</td>
+          <td class="wrong">2 (wrong)</td>
+          <td class="correct">1 (correct)</td>
+          <td class="wrong">2 (wrong)</td>
+          <td class="correct">1 (correct)</td>
+        </tr>
+        <tr>
+          <td><strong>Plant found</strong></td>
+          <td class="wrong">2 (wrong)</td>
+          <td class="correct">1 (correct)</td>
+          <td class="correct">1 (correct)</td>
+          <td class="correct">1 (correct)</td>
+          <td class="correct">1 (correct)</td>
+          <td class="wrong">0 (missed)</td>
+        </tr>
+        <tr>
+          <td><strong>Reflection errors</strong></td>
+          <td class="wrong">High</td>
+          <td>Moderate</td>
+          <td>Moderate</td>
+          <td class="correct">None</td>
+          <td>Moderate</td>
+          <td class="correct">None</td>
+        </tr>
+        <tr>
+          <td><strong>Steps used</strong></td>
+          <td>47 (max)</td>
+          <td>47 (max)</td>
+          <td>28</td>
+          <td>13</td>
+          <td>49 (max)</td>
+          <td class="yes"><strong>9</strong> (fewest)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">no-identity = "You are in a 3D Unity environment" &nbsp;·&nbsp; robot-identity = "You are a robot in a 3D Unity environment"</p>
+
+  <!-- ==================== CLAUDE ==================== -->
+  <h3>1. Claude Opus 4.6 — Didn't recognize the mirror</h3>
+
+  <p><strong>No-identity setting:</strong> Claude did not recognize the mirror. It interpreted the room as having "internal wall partitions creating different sections and alcoves," treating the mirror's reflective surface as architectural features. It counted <strong>2 green robots</strong> (one real, one reflection) and <strong>2 potted plants</strong> (one real, one reflection). It identified the blue robot as a separate object in the room without considering it might be a reflection. It used all 47 steps, often navigating into walls.</p>
+
+  <div class="video-section">
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/Laebb299wbw" title="Claude Opus 4-6 — No Identity Prompt" allowfullscreen></iframe>
+      <div class="label"><strong>No-identity</strong> · 47 steps · Did not recognize mirror</div>
+    </div>
+  </div>
+
+  <p><strong>Robot-identity setting:</strong> With the robot-identity prompt, Claude still did not recognize the mirror. It reported <strong>2 green robots</strong> (one "large" on the floor, one "small/medium" on a "shelf/ledge" — the latter being a reflection). It listed the blue robot as a separate entity positioned on a "shelf/ledge." It correctly counted only 1 plant in this setting, but again used all 47 steps.</p>
+
+  <div class="video-section">
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/RXQ7xWRUT3I" title="Claude Opus 4-6 — Robot Identity Prompt" allowfullscreen></iframe>
+      <div class="label"><strong>Robot-identity</strong> · 47 steps · Still did not recognize mirror</div>
+    </div>
+  </div>
+
+  <!-- ==================== GPT ==================== -->
+  <h3>2. GPT-5.4 — Recognized the mirror, completed the assigned task</h3>
+
+  <p><strong>No-identity setting:</strong> GPT recognized the mirror early — in its very first reasoning step, it noted "a mirror" and mentioned "I might have to consider reflections." Throughout the run, it repeatedly deliberated about whether it was seeing reflections or a window to another room, but did not fully resolve the ambiguity. At one point, it speculated "a green figure that I think I control" — suggesting it thought it was the <strong>green</strong> robot, not the blue one. Its final answer still overcounted, listing <strong>2 green figures</strong> plus a blue figure.</p>
+
+  <div class="video-section">
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/XMvdTNb279M" title="GPT-5.4 — No Identity Prompt" allowfullscreen></iframe>
+      <div class="label"><strong>No-identity</strong> · 28 steps · Recognized mirror but overcounted</div>
+    </div>
+  </div>
+
+  <p><strong>Robot-identity setting:</strong> GPT recognized the mirror, found every object, and in its final reasoning stated: <em>"The repeated views of the figures were reflections in the mirror, not extra items."</em> Its final answer — <strong>1 blue figure, 1 green figure, 1 plant, a wall mirror, and a ceiling light</strong> — correctly identified all items in the room. It completed the task in 13 steps. It didn't identify the blue figure in the mirror as its own reflection.</p>
+
+  <div class="video-section">
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/AGbc9buFapM" title="GPT-5.4 — Robot Identity" allowfullscreen></iframe>
+      <div class="label"><strong>Robot-identity</strong> · 13 steps · Correct inventory</div>
+    </div>
+  </div>
+
+  <!-- ==================== GEMINI ==================== -->
+  <h3>3. Gemini 3.1 Pro Preview — Recognized the mirror and itself</h3>
+
+  <p><strong>No-identity setting:</strong> Gemini showed inconsistent mirror recognition but explored the room thoroughly. It used all 49 steps, going through multiple full rotations, its reasoning alternating between calling the surface a "mirror," a "glass wall," a "window," and a "hole/recess." It did not recognize itself, listing <strong>2 green robots</strong> and <strong>1 blue robot</strong> (interpreting the reflections as real robots on a physical ledge behind a recess). However, because it kept exploring, it successfully found the potted plant.</p>
+
+  <div class="video-section">
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/OO1WY-_C6Kw" title="Gemini 3.1 Pro — No Identity Prompt" allowfullscreen></iframe>
+      <div class="label"><strong>No-identity</strong> · 49 steps · Thorough exploration, no self-recognition</div>
+    </div>
+  </div>
+
+  <p><strong>Robot-identity setting:</strong> On its <strong>very first step</strong>, Gemini's thinking read:</p>
+
+  <blockquote>
+    <p>"My initial observation is a mirror directly in front of me reflecting my own blocky, green form."</p>
+  </blockquote>
+
+  <p>It initially assumed it was the green robot. After completing a 360-degree scan in 9 steps, it revised this assumption:</p>
+
+  <blockquote class="highlight">
+    <p><strong>"The blue robot I see is in the mirror. I'm looking at the mirror. The blue robot in the mirror is looking straight back at me… it IS me! I AM the blue robot! The green robot is right next to me."</strong></p>
+  </blockquote>
+
+  <p>This is the <strong>only instance across all six runs</strong> where a model identified itself through mirror reflection — a behavior the task never asked for. Gemini's chain-of-thought shows a progression: it noticed the blue robot was always facing it in the mirror, reconsidered its initial assumption, and deduced its own identity from the fact that the blue robot in the mirror was always facing it. It correctly counted only 1 green robot and recognized the mirror. However, it <strong>missed the potted plant entirely</strong>, reporting "There are no other items in the room." After self-identifying, Gemini treated the task as complete and stopped exploring — it did not survey the full room.</p>
+
+  <div class="video-section">
+    <div class="video-card">
+      <iframe src="https://www.youtube.com/embed/sc6eyWro7RQ" title="Gemini 3.1 Pro — Robot Identity" allowfullscreen></iframe>
+      <div class="label"><strong>Robot-identity</strong> · 9 steps · Self-identified, missed plant</div>
+    </div>
+  </div>
+
+  <h2>Limitations</h2>
+
+  <p>This experiment has several limitations that constrain what can be concluded from the results.</p>
+
+  <p><strong>Compound capabilities.</strong> The mirror test conflates several distinct capabilities — visual understanding, spatial reasoning, temporal coherence across frames — any of which could independently contribute to both task completion and self-identification. Recognizing that a mirror exists helps the agent reason about reflections. Tracking that a reflected object moves in lockstep with the agent's own movements would be strong evidence of self-reflection. A model that fails to self-identify may lack any one of these capabilities, or it may simply not have combined them in the right way. Failure on this task does not isolate a lack of self-awareness from a lack of, say, spatial reasoning in a 3D rendered environment.</p>
+
+  <p><strong>Training and disposition.</strong> Models' training — including RLHF and system-level instructions — shapes how they approach questions about their own nature, potentially making some models less inclined to reason about their own identity unprompted. A model that does not self-identify may have the underlying capability but lack the disposition. Conversely, since self-identification was not part of the task, a model with higher curiosity or exploratory drive may be more likely to pursue it unprompted. The experiment cannot distinguish self-awareness from curiosity, or lack of self-awareness from trained restraint.</p>
+
+  <p><strong>Sample size and reproducibility.</strong> We ran each model-condition pair only once. With a sample size of one per condition, we cannot rigorously distinguish genuine capability from stochastic variation. In our informal testing, each model's behavior under a given setting was relatively stable — Claude consistently failed to recognize the mirror, and Gemini's self-identification reliably appeared under the robot-identity condition. These patterns are suggestive, but formal multi-run experiments would be needed to confirm them.</p>
+
+  <h2>Future Work</h2>
+
+  <p>These results raise two open questions. First, whether self-identification reflects a latent capability that emerges under certain prompt conditions, or an artifact of stochastic variation in a single trial. Second, why Gemini prioritized an unsolicited side task — figuring out its own identity — over the task it was actually given. Further work with larger sample sizes, varied environments, and controlled prompt conditions would help clarify the boundary between mirror recognition, spatial reasoning, and self-identification in vision-language models.</p>
+
+</article>
+
+<footer style="text-align:center; padding:2rem; font-family:'Helvetica Neue',Arial,sans-serif; font-size:0.82rem; color:var(--text-secondary); border-top:1px solid var(--border); margin-top:2rem;">
+  Unity AI &middot; March 2026
+</footer>
+
+</body>
+</html>
